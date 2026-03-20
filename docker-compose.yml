@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  youtube-bot:
+    build: .
+    container_name: youtube-downloader-bot
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    volumes:
+      - ./downloads:/app/downloads
+      - ./.env:/app/.env:ro
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import yt_dlp; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  downloads:
+    driver: local
