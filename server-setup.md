@@ -42,8 +42,8 @@ nano .env
 ```
 
 Добавьте токен бота:
-```
-BOT_TOKEN=8767042071:AAFOZZaVZeqoxAdJ67AXmrZ41rq8pOyw7Qw
+```bash
+BOT_TOKEN=your_telegram_bot_token_here
 ```
 
 ### 3. Запуск бота
