@@ -62,5 +62,10 @@ Thumbs.db
 *.log
 logs/
 
+
 # Docker
 .dockerignore
+
+# Logo
+Logo.png
+
