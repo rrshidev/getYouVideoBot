@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Инициализация бота
 bot = Bot(token=os.getenv("BOT_TOKEN"))
+CHANNEL_ID = os.getenv("CHANNEL_ID")
 dp = Dispatcher()
 
 # Класс для работы с YouTube
@@ -171,24 +172,31 @@ async def handle_quality_selection(callback: types.CallbackQuery):
             await loading_msg.edit_text("❌ Не удалось скачать видео. Возможно, файл слишком большой (>50MB) или видео недоступно.")
             return
         
-        # Отправляем видео
+        # Отправляем видео в канал
         try:
             video = FSInputFile(filename)
             await bot.send_video(
-                chat_id=callback.message.chat.id,
+                chat_id=CHANNEL_ID,
                 video=video,
-                caption="✅ Видео успешно скачано!"
+                caption=f"📹 Источник видео: {url}"
+            )
+            logger.info(f"✅ Видео отправлено в канал {CHANNEL_ID}")
+            
+            # Подтверждение пользователю
+            await loading_msg.edit_text(
+                f"✅ Видео отправлено в канал {CHANNEL_ID}\n\n"
+                f"📹 Источник: {url}"
             )
             
-            await loading_msg.delete()
-            
-            # Удаляем временный файл
-            os.remove(filename)
-            
         except Exception as e:
-            logger.error(f"Ошибка при отправке видео: {e}")
-            await loading_msg.edit_text("❌ Не удалось отправить видео. Файл может быть слишком большим.")
+            logger.error(f"Ошибка при отправке в канал: {e}")
+            await loading_msg.edit_text(
+                f"❌ Не удалось отправить видео в канал.\n"
+                f"Убедись, что бот добавлен как администратор канала {CHANNEL_ID}.\n\n"
+                f"Ошибка: {e}"
+            )
             
+        finally:
             # Удаляем временный файл
             if os.path.exists(filename):
                 os.remove(filename)
