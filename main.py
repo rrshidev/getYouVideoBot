@@ -27,16 +27,17 @@ dp = Dispatcher()
 class YouTubeDownloader:
     def __init__(self):
         self.ydl_opts = {
-            'format': 'best[height<=720]/best[height<=480]/best[height<=360]/best',
+            'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]/bestvideo+bestaudio/best',
             'merge_output_format': 'mp4',
             'outtmpl': 'downloads/%(title)s.%(ext)s',
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web']
+                    'player_client': ['android', 'web', 'ios'],
+                    'skip': ['dash', 'hls']
                 }
             }
         }
@@ -62,17 +63,17 @@ class YouTubeDownloader:
             # Создаем папку для загрузок, если ее нет
             os.makedirs('downloads', exist_ok=True)
             
-            # Настройка качества - более гибкие форматы
+            # Настройка качества - максимально гибкие форматы
             if quality == '360p':
-                format_string = 'worst[height<=360]/worst[height<=480]/worst'
+                format_string = 'bestvideo[height<=360]+bestaudio/worst[height<=360]/worst'
             elif quality == '480p':
-                format_string = 'worst[height<=480]/worst[height<=360]/worst'
+                format_string = 'bestvideo[height<=480]+bestaudio/worst[height<=480]/worst'
             elif quality == '720p':
-                format_string = 'best[height<=720]/best[height<=480]/best[height<=360]/best'
+                format_string = 'bestvideo[height<=720]+bestaudio/best[height<=720]/bestvideo+bestaudio/best'
             elif quality == '1080p':
-                format_string = 'best[height<=1080]/best[height<=720]/best[height<=480]/best'
+                format_string = 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/bestvideo+bestaudio/best'
             else:
-                format_string = 'best[height<=720]/best[height<=480]/best[height<=360]/best'
+                format_string = 'bestvideo[height<=720]+bestaudio/best[height<=720]/bestvideo+bestaudio/best'
             
             self.ydl_opts['format'] = format_string
             
