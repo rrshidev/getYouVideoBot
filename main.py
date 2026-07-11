@@ -42,7 +42,8 @@ QUALITIES = [
 
 class YouTubeDownloader:
     def __init__(self):
-        proxy = os.getenv('YT_PROXY', '')
+        # Tor по умолчанию (socks5://127.0.0.1:9050), если не задан YT_PROXY
+        proxy = os.getenv('YT_PROXY', 'socks5://127.0.0.1:9050')
         self.base_opts = {
             'merge_output_format': 'mp4',
             'outtmpl': 'downloads/%(title)s.%(ext)s',
