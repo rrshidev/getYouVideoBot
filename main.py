@@ -36,10 +36,8 @@ MAX_BYTES = MAX_SIZE_MB * 1024 * 1024
 dp = Dispatcher()
 
 QUALITIES = [
-    ('1080p', 'bestvideo[height<=1080]+bestaudio/best[height<=1080]/bestvideo+bestaudio/best'),
-    ('720p',  'bestvideo[height<=720]+bestaudio/best[height<=720]/bestvideo+bestaudio/best'),
-    ('480p',  'bestvideo[height<=480]+bestaudio/worst[height<=480]/worst'),
-    ('360p',  'bestvideo[height<=360]+bestaudio/worst[height<=360]/worst'),
+    ('480p',  'bestvideo[height<=480]+bestaudio/best[height<=480]/bestvideo+bestaudio/best'),
+    ('360p',  'bestvideo[height<=360]+bestaudio/best[height<=360]/bestvideo+bestaudio/best'),
 ]
 
 class YouTubeDownloader:
