@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 import logging
 from typing import Optional
@@ -38,13 +39,26 @@ class YouTubeDownloader:
             'no_warnings': True,
             'source_address': '0.0.0.0',
             'nocheckcertificate': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+            'socket_timeout': 30,
+            'extractor_retries': 3,
+            'file_access_retries': 5,
+            'retry_sleep_func': lambda n: min(n * 2, 10),
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'identity',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+            },
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['web', 'android', 'ios'],
-                    'skip': ['dash', 'hls']
+                    'player_client': ['android', 'web', 'ios'],
+                    'skip': ['dash', 'hls'],
                 }
-            }
+            },
+            'external_downloader': 'native',
         }
 
     def build_opts(self, fmt: str, use_legacy: bool = False) -> dict:
@@ -53,12 +67,13 @@ class YouTubeDownloader:
         if use_legacy:
             opts['extractor_args'] = {
                 'youtube': {
-                    'player_client': ['web'],
-                    'skip': ['dash', 'hls'],
-                    'max_comments': ['0']
+                    'player_client': ['android', 'web'],
+                    'skip': ['webpage', 'configs', 'dash', 'hls'],
+                    'max_comments': ['0'],
                 }
             }
             opts['legacy_server_connect'] = True
+            opts['source_address'] = '0.0.0.0'
         return opts
 
     def is_youtube_url(self, url: str) -> bool:
@@ -149,7 +164,8 @@ async def handle_text(message: Message):
 async def update_ytdlp():
     try:
         proc = await asyncio.create_subprocess_exec(
-            'pip', 'install', '--upgrade', 'https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz',
+            sys.executable, '-m', 'pip', 'install', '--upgrade',
+            'https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz',
             stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL
         )
         await proc.wait()
@@ -163,6 +179,8 @@ async def update_ytdlp():
 async def main():
     os.makedirs('downloads', exist_ok=True)
     logger.info("Запуск YouTube бота...")
+    import yt_dlp.version
+    logger.info(f"yt-dlp версия: {yt_dlp.version.__version__}")
     await update_ytdlp()
     await dp.start_polling(bot)
 

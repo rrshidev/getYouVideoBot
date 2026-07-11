@@ -1,4 +1,4 @@
 aiogram>=3.1.0
-yt-dlp
 aiohttp>=3.8.0
 python-dotenv>=1.0.0
+# yt-dlp ставится из nightly (GitHub master) в Dockerfile — см. RUN pip install ... master.tar.gz
