@@ -1,9 +1,22 @@
 import os
 import sys
+import ssl
 import asyncio
 import logging
 from typing import Optional
 from urllib.parse import urlparse
+
+# Глобальный SSL-патч для OpenSSL 3.x + YouTube (UNEXPECTED_EOF)
+try:
+    _ctx = ssl.create_default_context()
+    _ctx.check_hostname = False
+    _ctx.verify_mode = ssl.CERT_NONE
+    # Python 3.12+ флаг для игнорирования EOF от YouTube
+    if hasattr(ssl, 'OP_IGNORE_UNEXPECTED_EOF'):
+        _ctx.options |= ssl.OP_IGNORE_UNEXPECTED_EOF
+    ssl._create_default_https_context = lambda: _ctx
+except Exception:
+    pass
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
@@ -31,6 +44,7 @@ QUALITIES = [
 
 class YouTubeDownloader:
     def __init__(self):
+        proxy = os.getenv('YT_PROXY', '')
         self.base_opts = {
             'merge_output_format': 'mp4',
             'outtmpl': 'downloads/%(title)s.%(ext)s',
@@ -55,11 +69,14 @@ class YouTubeDownloader:
             'extractor_args': {
                 'youtube': {
                     'player_client': ['android', 'web', 'ios'],
-                    'skip': ['dash', 'hls'],
+                    'skip': ['webpage', 'configs', 'dash', 'hls'],
                 }
             },
             'external_downloader': 'native',
         }
+        if proxy:
+            self.base_opts['proxy'] = proxy
+            logger.info(f"Используется прокси: {proxy}")
 
     def build_opts(self, fmt: str, use_legacy: bool = False) -> dict:
         opts = self.base_opts.copy()
