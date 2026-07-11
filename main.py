@@ -128,9 +128,24 @@ async def handle_text(message: Message):
         if os.path.exists(filename):
             os.remove(filename)
 
+async def update_ytdlp():
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            'pip', 'install', '--upgrade', 'https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz',
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL
+        )
+        await proc.wait()
+        if proc.returncode == 0:
+            logger.info("yt-dlp обновлён до nightly")
+        else:
+            logger.warning("Не удалось обновить yt-dlp, продолжаю с текущей версией")
+    except Exception as e:
+        logger.warning(f"Ошибка обновления yt-dlp: {e}")
+
 async def main():
     os.makedirs('downloads', exist_ok=True)
     logger.info("Запуск YouTube бота...")
+    await update_ytdlp()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
