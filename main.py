@@ -36,16 +36,14 @@ MAX_BYTES = MAX_SIZE_MB * 1024 * 1024
 dp = Dispatcher()
 
 QUALITIES = [
-    ('480p',  'best[height<=480]'),
-    ('360p',  'best[height<=360]'),
     ('any',   'best'),
     ('low',   'worst'),
 ]
 
 class YouTubeDownloader:
     def __init__(self):
-        # Tor по умолчанию (socks5://127.0.0.1:9050), если не задан YT_PROXY
-        proxy = os.getenv('YT_PROXY', 'socks5://127.0.0.1:9050')
+        # Прокси для обхода блокировок (SOCKS5/HTTP). Не задан — идём напрямую
+        proxy = os.getenv('YT_PROXY', '')
         cookie_file = 'cookies.txt'
         if not os.path.exists(cookie_file):
             cookie_file = ''
@@ -79,6 +77,13 @@ class YouTubeDownloader:
         }
         if cookie_file:
             self.base_opts['cookiefile'] = cookie_file
+        # Имитация TLS-отпечатка браузера (обходит блокировки по fingerprint)
+        try:
+            import curl_cffi
+            self.base_opts['impersonate'] = True
+            logger.info("curl_cffi доступен, включена имитация браузера")
+        except ImportError:
+            logger.info("curl_cffi не установлен, имитация отключена")
         if proxy:
             self.base_opts['proxy'] = proxy
             logger.info(f"Используется прокси: {proxy}")

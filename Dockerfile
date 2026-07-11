@@ -2,11 +2,10 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Системные зависимости + Tor + обновление CA-сертификатов
+# Системные зависимости + обновление CA-сертификатов
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
-    tor \
     ca-certificates \
     && update-ca-certificates --fresh \
     && rm -rf /var/lib/apt/lists/*
@@ -25,7 +24,7 @@ RUN mkdir -p downloads
 
 EXPOSE 8080
 
-# Скрипт запуска: Tor в фоне, потом бот
-RUN echo '#!/bin/sh\ntor --runasdaemon 1 2>/dev/null\nsleep 3\npython main.py' > /app/start.sh && chmod +x /app/start.sh
+# Скрипт запуска
+RUN echo '#!/bin/sh\npython main.py' > /app/start.sh && chmod +x /app/start.sh
 
 CMD ["/app/start.sh"]
