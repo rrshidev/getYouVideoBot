@@ -38,6 +38,8 @@ dp = Dispatcher()
 QUALITIES = [
     ('480p',  'best[height<=480]'),
     ('360p',  'best[height<=360]'),
+    ('any',   'best'),
+    ('low',   'worst'),
 ]
 
 class YouTubeDownloader:
