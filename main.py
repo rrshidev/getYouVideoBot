@@ -77,13 +77,13 @@ class YouTubeDownloader:
         }
         if cookie_file:
             self.base_opts['cookiefile'] = cookie_file
-        # Имитация TLS-отпечатка браузера для обхода блокировок
+        # curl_cffi установлен, но impersonate не используем (вызывает AssertionError в yt-dlp 2026.07.04).
+        # Полагаемся на SSL-фикс (OP_IGNORE_UNEXPECTED_EOF) и nocheckcertificate.
         try:
             import curl_cffi
-            self.base_opts['impersonate'] = 'chrome'
-            logger.info("curl_cffi доступен, включена имитация Chrome")
+            logger.info(f"curl_cffi {curl_cffi.__version__ if hasattr(curl_cffi, '__version__') else '?'} доступен")
         except ImportError:
-            logger.info("curl_cffi не установлен, имитация отключена")
+            logger.info("curl_cffi не установлен")
         if proxy:
             self.base_opts['proxy'] = proxy
             logger.info(f"Используется прокси: {proxy}")
@@ -134,9 +134,10 @@ class YouTubeDownloader:
                         os.remove(filename)
 
                 except Exception as e:
-                    logger.warning(f"{label} ({mode}) не подошёл: [{type(e).__name__}] {e}")
                     import traceback
-                    logger.debug(traceback.format_exc())
+                    tb = traceback.format_exc()
+                    logger.warning(f"{label} ({mode}) не подошёл: [{type(e).__name__}] {e}")
+                    logger.warning(f"Traceback:\n{tb}")
                     continue
 
         return None
