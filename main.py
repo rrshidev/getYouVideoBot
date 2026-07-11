@@ -114,8 +114,15 @@ class YouTubeDownloader:
                 logger.info(f"Пробую {label} ({mode})...")
                 try:
                     opts = self.build_opts(fmt, use_legacy)
+                    opts['quiet'] = False
+                    opts['no_warnings'] = False
                     with yt_dlp.YoutubeDL(opts) as ydl:
                         info = ydl.extract_info(url, download=True)
+                        formats = info.get('formats', [])
+                        logger.warning(f"Получено форматов: {len(formats)}")
+                        if formats:
+                            for f in formats[:5]:
+                                logger.warning(f"  формат: {f.get('format_id')} {f.get('height')}p {f.get('ext')}")
                         filename = ydl.prepare_filename(info)
 
                         file_size = os.path.getsize(filename)
@@ -127,7 +134,9 @@ class YouTubeDownloader:
                         os.remove(filename)
 
                 except Exception as e:
-                    logger.warning(f"{label} ({mode}) не подошёл: {e}")
+                    logger.warning(f"{label} ({mode}) не подошёл: [{type(e).__name__}] {e}")
+                    import traceback
+                    logger.debug(traceback.format_exc())
                     continue
 
         return None
