@@ -36,40 +36,58 @@ class YouTubeDownloader:
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'source_address': '0.0.0.0',
+            'nocheckcertificate': True,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web', 'ios'],
+                    'player_client': ['web', 'android', 'ios'],
                     'skip': ['dash', 'hls']
                 }
             }
         }
+
+    def build_opts(self, fmt: str, use_legacy: bool = False) -> dict:
+        opts = self.base_opts.copy()
+        opts['format'] = fmt
+        if use_legacy:
+            opts['extractor_args'] = {
+                'youtube': {
+                    'player_client': ['web'],
+                    'skip': ['dash', 'hls'],
+                    'max_comments': ['0']
+                }
+            }
+            opts['legacy_server_connect'] = True
+        return opts
 
     def is_youtube_url(self, url: str) -> bool:
         parsed = urlparse(url)
         return parsed.netloc in ['youtube.com', 'www.youtube.com', 'youtu.be', 'm.youtube.com']
 
     async def auto_download(self, url: str) -> Optional[str]:
-        for label, fmt in QUALITIES:
-            logger.info(f"Пробую {label}...")
-            try:
-                opts = self.base_opts.copy()
-                opts['format'] = fmt
-                with yt_dlp.YoutubeDL(opts) as ydl:
-                    info = ydl.extract_info(url, download=True)
-                    filename = ydl.prepare_filename(info)
+        # Пробуем сначала нормальный режим, потом legacy если не сработало
+        for use_legacy in [False, True]:
+            mode = "legacy" if use_legacy else "normal"
+            for label, fmt in QUALITIES:
+                logger.info(f"Пробую {label} ({mode})...")
+                try:
+                    opts = self.build_opts(fmt, use_legacy)
+                    with yt_dlp.YoutubeDL(opts) as ydl:
+                        info = ydl.extract_info(url, download=True)
+                        filename = ydl.prepare_filename(info)
 
-                    file_size = os.path.getsize(filename)
-                    if file_size <= MAX_BYTES:
-                        logger.info(f"{label}: {file_size/(1024*1024):.1f}MB — OK")
-                        return filename
+                        file_size = os.path.getsize(filename)
+                        if file_size <= MAX_BYTES:
+                            logger.info(f"{label} ({mode}): {file_size/(1024*1024):.1f}MB — OK")
+                            return filename
 
-                    logger.warning(f"{label}: {file_size/(1024*1024):.1f}MB > {MAX_SIZE_MB}MB, пробую ниже")
-                    os.remove(filename)
+                        logger.warning(f"{label} ({mode}): {file_size/(1024*1024):.1f}MB > {MAX_SIZE_MB}MB, пробую ниже")
+                        os.remove(filename)
 
-            except Exception as e:
-                logger.warning(f"{label} не подошёл: {e}")
-                continue
+                except Exception as e:
+                    logger.warning(f"{label} ({mode}) не подошёл: {e}")
+                    continue
 
         return None
 
