@@ -44,6 +44,9 @@ class YouTubeDownloader:
     def __init__(self):
         # Tor по умолчанию (socks5://127.0.0.1:9050), если не задан YT_PROXY
         proxy = os.getenv('YT_PROXY', 'socks5://127.0.0.1:9050')
+        cookie_file = 'cookies.txt'
+        if not os.path.exists(cookie_file):
+            cookie_file = ''
         self.base_opts = {
             'merge_output_format': 'mp4',
             'outtmpl': 'downloads/%(title)s.%(ext)s',
@@ -73,6 +76,8 @@ class YouTubeDownloader:
             },
             'external_downloader': 'native',
         }
+        if cookie_file:
+            self.base_opts['cookiefile'] = cookie_file
         if proxy:
             self.base_opts['proxy'] = proxy
             logger.info(f"Используется прокси: {proxy}")
