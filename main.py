@@ -77,11 +77,11 @@ class YouTubeDownloader:
         }
         if cookie_file:
             self.base_opts['cookiefile'] = cookie_file
-        # Имитация TLS-отпечатка браузера (обходит блокировки по fingerprint)
+        # Имитация TLS-отпечатка браузера для обхода блокировок
         try:
             import curl_cffi
-            self.base_opts['impersonate'] = True
-            logger.info("curl_cffi доступен, включена имитация браузера")
+            self.base_opts['impersonate'] = 'chrome'
+            logger.info("curl_cffi доступен, включена имитация Chrome")
         except ImportError:
             logger.info("curl_cffi не установлен, имитация отключена")
         if proxy:
