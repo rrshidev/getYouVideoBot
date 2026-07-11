@@ -73,7 +73,6 @@ class YouTubeDownloader:
             'extractor_args': {
                 'youtube': {
                     'player_client': ['android', 'web', 'ios'],
-                    'skip': ['webpage', 'configs', 'dash', 'hls'],
                 }
             },
             'external_downloader': 'native',
@@ -91,7 +90,6 @@ class YouTubeDownloader:
             opts['extractor_args'] = {
                 'youtube': {
                     'player_client': ['android', 'web'],
-                    'skip': ['webpage', 'configs', 'dash', 'hls'],
                     'max_comments': ['0'],
                 }
             }
